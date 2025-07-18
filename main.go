@@ -10,7 +10,6 @@ func main() {
 	interpreter := NewInterpreter(reader)
 
 	for {
-		interpreter.prompt()
 		word := interpreter.word()
 		interpreter.interpret(word)
 	}
