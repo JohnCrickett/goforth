@@ -28,8 +28,9 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 		stack:      Stack{},
 		dictionary: make(map[string]ExecutableToken),
 	}
-	i.dictionary["exit"] = ExecutableToken{
-		name: "exit",
+	// Quiting
+	i.dictionary["bye"] = ExecutableToken{
+		name: "bye",
 		primitive: func() {
 			os.Exit(0)
 		},
@@ -50,6 +51,24 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 			i.stack.Push(a + b)
 		},
 	}
+
+	// Mathematical Operations
+	i.dictionary["-"] = ExecutableToken{
+		name: "-",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			i.stack.Push(b - a)
+		},
+	}
 	i.dictionary["*"] = ExecutableToken{
 		name: "*",
 		primitive: func() {
@@ -66,12 +85,114 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 			i.stack.Push(a * b)
 		},
 	}
+	i.dictionary["/"] = ExecutableToken{
+		name: "/",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			i.stack.Push(b / a)
+		},
+	}
+	i.dictionary["mod"] = ExecutableToken{
+		name: "mod",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			i.stack.Push(b % a)
+		},
+	}
+
+	// Stack manipulation
+	i.dictionary["swap"] = ExecutableToken{
+		name: "swap",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			i.stack.Push(a)
+			i.stack.Push(b)
+		},
+	}
+	i.dictionary["dup"] = ExecutableToken{
+		name: "dup",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Push(a)
+		},
+	}
+	i.dictionary["over"] = ExecutableToken{
+		name: "over",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Push(a)
+			i.stack.Push(b)
+		},
+	}
+	i.dictionary["rot"] = ExecutableToken{
+		name: "rot",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			c, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			i.stack.Push(b)
+			i.stack.Push(a)
+			i.stack.Push(c)
+		},
+	}
 	i.dictionary["drop"] = ExecutableToken{
 		name: "drop",
 		primitive: func() {
 			i.stack.Pop()
 		},
 	}
+
+	// Output
 	i.dictionary["."] = ExecutableToken{
 		name: ".",
 		primitive: func() {
