@@ -204,6 +204,15 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 			fmt.Printf("%d\n", a)
 		},
 	}
+	i.dictionary[".S"] = ExecutableToken{
+		name: ".S",
+		primitive: func() {
+			fmt.Printf("<%d> ", len(i.stack.items))
+			for _, v := range i.stack.items {
+				fmt.Printf("%d ", v)
+			}
+		},
+	}
 
 	return &i
 }
