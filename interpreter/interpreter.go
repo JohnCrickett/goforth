@@ -243,6 +243,50 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 		},
 	}
 
+	// Defining words
+	i.dictionary[":"] = ExecutableToken{
+		name: ":",
+		primitive: func() {
+			name := i.Word()
+			words := []string{}
+			for i.scanner.Scan() {
+				t := i.scanner.Text()
+				if t != ";" {
+					words = append(words, t)
+				} else {
+					break
+				}
+			}
+			definition := strings.Join(words, " ")
+			xt := ExecutableToken{
+				name: name,
+				primitive: func() {
+					s := bufio.NewScanner(strings.NewReader(definition))
+					s.Split(bufio.ScanWords)
+					for s.Scan() {
+						t := s.Text()
+						i.Interpret(t)
+					}
+				},
+			}
+			i.dictionary[name] = xt
+		},
+	}
+
+	// Comments
+	i.dictionary["("] = ExecutableToken{
+		name: "(",
+		primitive: func() {
+			// Consume the text until the end of comment ')'
+			for i.scanner.Scan() {
+				t := i.scanner.Text()
+				if t == ")" {
+					break
+				}
+			}
+		},
+	}
+
 	return &i
 }
 
@@ -254,7 +298,7 @@ func (i *Interpreter) Interpret(word string) {
 		if err == nil {
 			i.stack.Push(int(v))
 		} else {
-			log.Fatal("unknown word ", word)
+			fmt.Printf("%s ?\n", word)
 		}
 	}
 }
