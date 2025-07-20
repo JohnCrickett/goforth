@@ -201,7 +201,36 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 				log.Fatal(err)
 			}
 			i.stack.Pop()
-			fmt.Printf("%d\n", a)
+			fmt.Printf("%d", a)
+		},
+	}
+	i.dictionary["emit"] = ExecutableToken{
+		name: "emit",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			fmt.Printf("%c\n", a)
+		},
+	}
+	i.dictionary["cr"] = ExecutableToken{
+		name: "cr",
+		primitive: func() {
+			fmt.Println()
+		},
+	}
+	i.dictionary[".\""] = ExecutableToken{
+		name: ".\"",
+		primitive: func() {
+			if i.scanner.Scan() {
+				w := i.scanner.Text()
+				if w[len(w)-1:] != "\"" {
+					log.Fatal("invalid string termination")
+				}
+				fmt.Println(w[:len(w)-1])
+			}
 		},
 	}
 	i.dictionary[".S"] = ExecutableToken{
