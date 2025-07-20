@@ -2,15 +2,16 @@ package main
 
 import (
 	"bufio"
+	"github.com/JohnCrickett/goforth/interpreter"
 	"os"
 )
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	interpreter := NewInterpreter(reader)
+	interpreter := interpreter.NewInterpreter(reader)
 
 	for {
-		word := interpreter.word()
-		interpreter.interpret(word)
+		word := interpreter.Word()
+		interpreter.Interpret(word)
 	}
 }

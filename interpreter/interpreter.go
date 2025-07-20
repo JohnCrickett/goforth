@@ -1,4 +1,4 @@
-package main
+package interpreter
 
 import (
 	"bufio"
@@ -201,7 +201,7 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 				log.Fatal(err)
 			}
 			i.stack.Pop()
-			fmt.Printf("%d", a)
+			fmt.Printf("%d ", a)
 		},
 	}
 	i.dictionary["emit"] = ExecutableToken{
@@ -246,7 +246,7 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 	return &i
 }
 
-func (i *Interpreter) interpret(word string) {
+func (i *Interpreter) Interpret(word string) {
 	if xt, ok := i.dictionary[word]; ok {
 		xt.primitive()
 	} else {
@@ -266,7 +266,7 @@ func (i *Interpreter) prompt() {
 	fmt.Print("ok> ")
 }
 
-func (i *Interpreter) word() string {
+func (i *Interpreter) Word() string {
 	if i.scanner != nil && i.scanner.Scan() {
 		return i.scanner.Text()
 	} else {
