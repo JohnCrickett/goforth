@@ -5,18 +5,25 @@ import (
 	"github.com/JohnCrickett/goforth/interpreter"
 	"log"
 	"os"
+	"strings"
 )
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	interpreter := interpreter.NewInterpreter(reader)
+	i := interpreter.NewInterpreter("")
 
 	for {
-		word, err := interpreter.Word()
+		word, err := i.Word()
 		if err != nil {
-			log.Fatal(err)
+			i.Prompt()
+			s, err := reader.ReadString('\n')
+			if err != nil {
+				log.Fatal(err)
+			}
+			s = strings.TrimSpace(s)
+			i.SetScanLine(s)
 		} else {
-			interpreter.Interpret(word)
+			i.Interpret(word)
 		}
 	}
 }

@@ -16,19 +16,19 @@ type ExecutableToken struct {
 }
 
 type Interpreter struct {
-	reader     *bufio.Reader
 	scanner    *bufio.Scanner
 	stack      Stack[int]
 	dictionary map[string]ExecutableToken
 }
 
-func NewInterpreter(reader *bufio.Reader) *Interpreter {
+func NewInterpreter(line string) *Interpreter {
 	i := Interpreter{
-		reader:     bufio.NewReader(reader),
-		scanner:    nil,
+		scanner:    bufio.NewScanner(strings.NewReader(line)),
 		stack:      Stack[int]{},
 		dictionary: make(map[string]ExecutableToken),
 	}
+	i.scanner.Split(bufio.ScanWords)
+
 	// Quiting
 	i.dictionary["bye"] = ExecutableToken{
 		name: "bye",
@@ -307,7 +307,7 @@ func (i *Interpreter) Interpret(word string) {
 	}
 }
 
-func (i *Interpreter) prompt() {
+func (i *Interpreter) Prompt() {
 	for _, v := range i.stack.items {
 		fmt.Printf("%d ", v)
 	}
@@ -318,15 +318,11 @@ func (i *Interpreter) Word() (string, error) {
 	if i.scanner != nil && i.scanner.Scan() {
 		return i.scanner.Text(), nil
 	} else {
-		i.prompt()
-		s, err := i.reader.ReadString('\n')
-		if err != nil {
-			return "", errors.New("end of input")
-		}
-		s = strings.TrimSpace(s)
-		i.scanner = bufio.NewScanner(strings.NewReader(s))
-		i.scanner.Split(bufio.ScanWords)
-		i.scanner.Scan()
-		return i.scanner.Text(), nil
+		return "", errors.New("end of input")
 	}
+}
+
+func (i *Interpreter) SetScanLine(line string) {
+	i.scanner = bufio.NewScanner(strings.NewReader(line))
+	i.scanner.Split(bufio.ScanWords)
 }

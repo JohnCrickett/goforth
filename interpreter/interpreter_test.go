@@ -1,9 +1,6 @@
 package interpreter
 
 import (
-	"bufio"
-	"os"
-	"strings"
 	"testing"
 )
 
@@ -24,9 +21,8 @@ func TestNumbers(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			interpreter := NewInterpreter(bufio.NewReader(os.Stdin))
-			interpreter.scanner = bufio.NewScanner(strings.NewReader(test.input))
-			interpreter.scanner.Split(bufio.ScanWords)
+			interpreter := NewInterpreter(test.input)
+
 			for {
 				w, err := interpreter.Word()
 				if err != nil {
@@ -73,9 +69,8 @@ func TestMathOperations(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			interpreter := NewInterpreter(bufio.NewReader(os.Stdin))
-			interpreter.scanner = bufio.NewScanner(strings.NewReader(test.input))
-			interpreter.scanner.Split(bufio.ScanWords)
+			interpreter := NewInterpreter(test.input)
+
 			for {
 				w, err := interpreter.Word()
 				if err != nil {
