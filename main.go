@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"github.com/JohnCrickett/goforth/interpreter"
+	"log"
 	"os"
 )
 
@@ -11,7 +12,11 @@ func main() {
 	interpreter := interpreter.NewInterpreter(reader)
 
 	for {
-		word := interpreter.Word()
-		interpreter.Interpret(word)
+		word, err := interpreter.Word()
+		if err != nil {
+			log.Fatal(err)
+		} else {
+			interpreter.Interpret(word)
+		}
 	}
 }

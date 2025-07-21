@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -17,7 +18,7 @@ type ExecutableToken struct {
 type Interpreter struct {
 	reader     *bufio.Reader
 	scanner    *bufio.Scanner
-	stack      Stack
+	stack      Stack[int]
 	dictionary map[string]ExecutableToken
 }
 
@@ -25,7 +26,7 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 	i := Interpreter{
 		reader:     bufio.NewReader(reader),
 		scanner:    nil,
-		stack:      Stack{},
+		stack:      Stack[int]{},
 		dictionary: make(map[string]ExecutableToken),
 	}
 	// Quiting
@@ -247,7 +248,10 @@ func NewInterpreter(reader *bufio.Reader) *Interpreter {
 	i.dictionary[":"] = ExecutableToken{
 		name: ":",
 		primitive: func() {
-			name := i.Word()
+			name, err := i.Word()
+			if err != nil {
+				log.Fatal(err)
+			}
 			words := []string{}
 			for i.scanner.Scan() {
 				t := i.scanner.Text()
@@ -310,16 +314,19 @@ func (i *Interpreter) prompt() {
 	fmt.Print("ok> ")
 }
 
-func (i *Interpreter) Word() string {
+func (i *Interpreter) Word() (string, error) {
 	if i.scanner != nil && i.scanner.Scan() {
-		return i.scanner.Text()
+		return i.scanner.Text(), nil
 	} else {
 		i.prompt()
-		s, _ := i.reader.ReadString('\n')
+		s, err := i.reader.ReadString('\n')
+		if err != nil {
+			return "", errors.New("end of input")
+		}
 		s = strings.TrimSpace(s)
 		i.scanner = bufio.NewScanner(strings.NewReader(s))
 		i.scanner.Split(bufio.ScanWords)
 		i.scanner.Scan()
-		return i.scanner.Text()
+		return i.scanner.Text(), nil
 	}
 }

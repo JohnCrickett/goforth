@@ -2,15 +2,15 @@ package interpreter
 
 import "fmt"
 
-type Stack struct {
-	items []int
+type Stack[T any] struct {
+	items []T
 }
 
-func (s *Stack) Push(item int) {
+func (s *Stack[T]) Push(item T) {
 	s.items = append(s.items, item)
 }
 
-func (s *Stack) Pop() {
+func (s *Stack[T]) Pop() {
 	if len(s.items) == 0 {
 		return
 	}
@@ -18,9 +18,10 @@ func (s *Stack) Pop() {
 	s.items = s.items[:len(s.items)-1]
 }
 
-func (s *Stack) Top() (int, error) {
+func (s *Stack[T]) Top() (T, error) {
 	if len(s.items) == 0 {
-		return 0, fmt.Errorf("stack underflow")
+		var t T
+		return t, fmt.Errorf("stack underflow")
 	}
 	return s.items[len(s.items)-1], nil
 }
