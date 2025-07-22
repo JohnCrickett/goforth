@@ -23,9 +23,9 @@ type Interpreter struct {
 	dictionary map[string]ExecutableToken
 }
 
-func NewInterpreter(writer io.Writer, line string) *Interpreter {
+func NewInterpreter(writer io.Writer, source string) *Interpreter {
 	i := Interpreter{
-		scanner:    bufio.NewScanner(strings.NewReader(line)),
+		scanner:    bufio.NewScanner(strings.NewReader(source)),
 		out:        writer,
 		stack:      Stack[int]{},
 		dictionary: make(map[string]ExecutableToken),
