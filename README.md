@@ -18,8 +18,8 @@ Comments are any content between an open bracket and a close bracket: `( this is
 
 ```forth
 : fib over over + ;  ( generate the next number in the Fibonacci sequence ) 
-1 1 fib fib fib fib fib fib fib fib fib ( generate the first few numbers the Fibonacci sequence )
-( TODO put it in a loop make another word to do fibN )
+: fibn 10 1 do fib loop ;
+0 1 fibn ( generate the next 10 numbers )
 ```
 
 ### Language Support
@@ -34,9 +34,9 @@ For example if the stack contains: `1 2 3` where 1 is the bottom of the stack an
 
 This interpreter supports the following built-in words:
 
-| Word | Stack Effects            | Description                                                                                             |
+| Word | Stack Effect             | Description                                                                                             |
 |------|--------------------------|---------------------------------------------------------------------------------------------------------|
-| bye  | no effect                | Exits the interpreter                                                                                   |
+| bye  | ( -- )                   | Exits the interpreter                                                                                   |
 | +    | ( n1 n2 -- sum )         | Pops the top two elements on the stack, pushes the sum on to the top of the stack                       |
 | -    | ( n1 n2 -- diff )        | Pops the top two elements on the stack, substracts n2 from n1 stores the result on the top of the stack |
 | *    | ( n1 n2 -- multiplied )  | Pops the top two elements on the stack, pushes the product on to the top of the stack                   |
