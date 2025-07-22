@@ -387,6 +387,26 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 			}
 		},
 	}
+	i.dictionary["<>"] = ExecutableToken{
+		name: "<>",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			if b != a {
+				i.stack.Push(-1)
+			} else {
+				i.stack.Push(0)
+			}
+		},
+	}
 
 	// Boolean Operators
 	i.dictionary["and"] = ExecutableToken{

@@ -97,6 +97,14 @@ func TestInterpret(t *testing.T) {
 			input:    "4 2 >",
 			expected: []int{-1},
 		},
+		"ne - when eq": {
+			input:    "2 2 <>",
+			expected: []int{0},
+		},
+		"ne - ne": {
+			input:    "4 2 <>",
+			expected: []int{-1},
+		},
 
 		// Boolean Operators
 		"and - when not": {
