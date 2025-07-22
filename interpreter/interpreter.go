@@ -39,6 +39,8 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 			os.Exit(0)
 		},
 	}
+
+	// Mathematical Operations
 	i.dictionary["+"] = ExecutableToken{
 		name: "+",
 		primitive: func() {
@@ -55,8 +57,6 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 			i.stack.Push(a + b)
 		},
 	}
-
-	// Mathematical Operations
 	i.dictionary["-"] = ExecutableToken{
 		name: "-",
 		primitive: func() {
@@ -322,6 +322,125 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 				if t == ")" {
 					break
 				}
+			}
+		},
+	}
+
+	// Comparrisions
+	i.dictionary["="] = ExecutableToken{
+		name: "=",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			if a == b {
+				i.stack.Push(-1)
+			} else {
+				i.stack.Push(0)
+			}
+		},
+	}
+	i.dictionary["<"] = ExecutableToken{
+		name: "<",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			if b < a {
+				i.stack.Push(-1)
+			} else {
+				i.stack.Push(0)
+			}
+		},
+	}
+	i.dictionary[">"] = ExecutableToken{
+		name: ">",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			if b > a {
+				i.stack.Push(-1)
+			} else {
+				i.stack.Push(0)
+			}
+		},
+	}
+
+	// Boolean Operators
+	i.dictionary["and"] = ExecutableToken{
+		name: "and",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			if b == -1 && a == -1 {
+				i.stack.Push(-1)
+			} else {
+				i.stack.Push(0)
+			}
+		},
+	}
+	i.dictionary["or"] = ExecutableToken{
+		name: "or",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			b, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			if b == -1 || a == -1 {
+				i.stack.Push(-1)
+			} else {
+				i.stack.Push(0)
+			}
+		},
+	}
+	i.dictionary["invert"] = ExecutableToken{
+		name: "invert",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			if a == -1 {
+				i.stack.Push(0)
+			} else {
+				i.stack.Push(-1)
 			}
 		},
 	}

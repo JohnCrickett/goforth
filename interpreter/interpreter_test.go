@@ -71,6 +71,58 @@ func TestInterpret(t *testing.T) {
 			input:    "3 2 1 0 ( -1 -2 ) drop",
 			expected: []int{3, 2, 1},
 		},
+
+		// Comparrision Operators
+		"equal - when not": {
+			input:    "1 2 =",
+			expected: []int{0},
+		},
+		"equal - equal": {
+			input:    "2 2 =",
+			expected: []int{-1},
+		},
+		"lt - when not": {
+			input:    "3 2 <",
+			expected: []int{0},
+		},
+		"lt - lt": {
+			input:    "1 2 <",
+			expected: []int{-1},
+		},
+		"gt - when not": {
+			input:    "2 3 >",
+			expected: []int{0},
+		},
+		"gt - gt": {
+			input:    "4 2 >",
+			expected: []int{-1},
+		},
+
+		// Boolean Operators
+		"and - when not": {
+			input:    "0 1 and",
+			expected: []int{0},
+		},
+		"and - and": {
+			input:    "-1 -1 and",
+			expected: []int{-1},
+		},
+		"or - when not": {
+			input:    "0 0 or",
+			expected: []int{0},
+		},
+		"or - or": {
+			input:    "-1 0 or",
+			expected: []int{-1},
+		},
+		"invert true": {
+			input:    "-1 invert",
+			expected: []int{0},
+		},
+		"invert false": {
+			input:    "0 invert",
+			expected: []int{-1},
+		},
 	}
 
 	for name, test := range tests {
