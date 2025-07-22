@@ -10,7 +10,7 @@ import (
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	i := interpreter.NewInterpreter("")
+	i := interpreter.NewInterpreter(os.Stdout, "")
 
 	for {
 		word, err := i.Word()

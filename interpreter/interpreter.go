@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -17,13 +18,15 @@ type ExecutableToken struct {
 
 type Interpreter struct {
 	scanner    *bufio.Scanner
+	out        io.Writer
 	stack      Stack[int]
 	dictionary map[string]ExecutableToken
 }
 
-func NewInterpreter(line string) *Interpreter {
+func NewInterpreter(writer io.Writer, line string) *Interpreter {
 	i := Interpreter{
 		scanner:    bufio.NewScanner(strings.NewReader(line)),
+		out:        writer,
 		stack:      Stack[int]{},
 		dictionary: make(map[string]ExecutableToken),
 	}
@@ -202,7 +205,10 @@ func NewInterpreter(line string) *Interpreter {
 				log.Fatal(err)
 			}
 			i.stack.Pop()
-			fmt.Printf("%d ", a)
+			_, err = fmt.Fprintf(i.out, "%d ", a)
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 	i.dictionary["emit"] = ExecutableToken{
@@ -213,33 +219,62 @@ func NewInterpreter(line string) *Interpreter {
 				log.Fatal(err)
 			}
 			i.stack.Pop()
-			fmt.Printf("%c\n", a)
+			_, err = fmt.Fprintf(i.out, "%c", a)
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 	i.dictionary["cr"] = ExecutableToken{
 		name: "cr",
 		primitive: func() {
-			fmt.Println()
+			_, err := fmt.Fprintln(i.out)
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 	i.dictionary[".\""] = ExecutableToken{
 		name: ".\"",
 		primitive: func() {
-			if i.scanner.Scan() {
-				w := i.scanner.Text()
-				if w[len(w)-1:] != "\"" {
-					log.Fatal("invalid string termination")
+			first := true
+			for i.scanner.Scan() {
+				if !first {
+					_, err := fmt.Fprint(i.out, " ")
+					if err != nil {
+						log.Fatal(err)
+					}
 				}
-				fmt.Println(w[:len(w)-1])
+				w := i.scanner.Text()
+				if w[len(w)-1:] == "\"" {
+					w = w[:len(w)-1]
+					_, err := fmt.Fprint(i.out, w)
+					if err != nil {
+						log.Fatal(err)
+					}
+					break
+				}
+				_, err := fmt.Fprint(i.out, w)
+				if err != nil {
+					log.Fatal(err)
+				}
+				first = false
 			}
 		},
 	}
 	i.dictionary[".S"] = ExecutableToken{
 		name: ".S",
 		primitive: func() {
-			fmt.Printf("<%d> ", len(i.stack.items))
+			_, err := fmt.Fprintf(i.out, "<%d> ", len(i.stack.items))
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			for _, v := range i.stack.items {
-				fmt.Printf("%d ", v)
+				_, err := fmt.Fprintf(i.out, "%d ", v)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		},
 	}
@@ -302,14 +337,20 @@ func (i *Interpreter) Interpret(word string) {
 		if err == nil {
 			i.stack.Push(int(v))
 		} else {
-			fmt.Printf("%s ?\n", word)
+			_, err := fmt.Fprintf(i.out, "%s ?\n", word)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 }
 
 func (i *Interpreter) Prompt() {
 	for _, v := range i.stack.items {
-		fmt.Printf("%d ", v)
+		_, err := fmt.Fprintf(i.out, "%d ", v)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	fmt.Print("ok> ")
 }
