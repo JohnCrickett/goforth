@@ -477,23 +477,38 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 			}
 			i.stack.Pop()
 			if a == -1 {
+				interpret := true
 				// true code
 				// get the next word and process it,
 				for i.environments[len(i.environments)-1].Scan() {
 					w := i.environments[len(i.environments)-1].Text()
 					if w == "then" {
 						break
-					} else {
+					} else if w == "else" {
+						interpret = false
+					} else if interpret {
 						i.Interpret(w)
 					}
 				}
 			} else {
-				// skip to the 'then'
+				// if there is an else
+				// skip everything until the else, then interpret
+				for i.environments[len(i.environments)-1].Scan() {
+					w := i.environments[len(i.environments)-1].Text()
+					if w == "else" {
+						break
+					} else if w == "then" {
+						// if no else, return early
+						return
+					}
+				}
 				var foundThen bool
 				for i.environments[len(i.environments)-1].Scan() && !foundThen {
 					w := i.environments[len(i.environments)-1].Text()
 					if w == "then" {
 						foundThen = true
+					} else {
+						i.Interpret(w)
 					}
 				}
 				if !foundThen {

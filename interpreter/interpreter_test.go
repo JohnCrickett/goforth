@@ -277,6 +277,16 @@ func TestConditionals(t *testing.T) {
 			expectedOutput: "Buzz",
 			expectedStack:  []int{},
 		},
+		"if then else - if is true": {
+			input:          "5 5 = if .\" Equal\" else .\" Not Equal\" then",
+			expectedOutput: "Equal",
+			expectedStack:  []int{},
+		},
+		"if then else - if is false": {
+			input:          "5 3 = if .\" Equal\" else .\" Not Equal\" then",
+			expectedOutput: "Not Equal",
+			expectedStack:  []int{},
+		},
 	}
 
 	for name, test := range tests {
