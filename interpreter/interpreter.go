@@ -17,20 +17,20 @@ type ExecutableToken struct {
 }
 
 type Interpreter struct {
-	scanner    *bufio.Scanner
-	out        io.Writer
-	stack      Stack[int]
-	dictionary map[string]ExecutableToken
+	environments []*bufio.Scanner
+	out          io.Writer
+	stack        Stack[int]
+	dictionary   map[string]ExecutableToken
 }
 
 func NewInterpreter(writer io.Writer, source string) *Interpreter {
 	i := Interpreter{
-		scanner:    bufio.NewScanner(strings.NewReader(source)),
 		out:        writer,
 		stack:      Stack[int]{},
 		dictionary: make(map[string]ExecutableToken),
 	}
-	i.scanner.Split(bufio.ScanWords)
+	i.environments = append(i.environments, bufio.NewScanner(strings.NewReader(source)))
+	i.environments[0].Split(bufio.ScanWords)
 
 	// Quiting
 	i.dictionary["bye"] = ExecutableToken{
@@ -238,14 +238,14 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 		name: ".\"",
 		primitive: func() {
 			first := true
-			for i.scanner.Scan() {
+			for i.environments[len(i.environments)-1].Scan() {
 				if !first {
 					_, err := fmt.Fprint(i.out, " ")
 					if err != nil {
 						log.Fatal(err)
 					}
 				}
-				w := i.scanner.Text()
+				w := i.environments[len(i.environments)-1].Text()
 				if w[len(w)-1:] == "\"" {
 					w = w[:len(w)-1]
 					_, err := fmt.Fprint(i.out, w)
@@ -288,8 +288,8 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 				log.Fatal(err)
 			}
 			words := []string{}
-			for i.scanner.Scan() {
-				t := i.scanner.Text()
+			for i.environments[len(i.environments)-1].Scan() {
+				t := i.environments[len(i.environments)-1].Text()
 				if t != ";" {
 					words = append(words, t)
 				} else {
@@ -302,10 +302,12 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 				primitive: func() {
 					s := bufio.NewScanner(strings.NewReader(definition))
 					s.Split(bufio.ScanWords)
-					for s.Scan() {
-						t := s.Text()
+					i.environments = append(i.environments, s)
+					for i.environments[len(i.environments)-1].Scan() {
+						t := i.environments[len(i.environments)-1].Text()
 						i.Interpret(t)
 					}
+					i.environments = i.environments[:len(i.environments)-1]
 				},
 			}
 			i.dictionary[name] = xt
@@ -317,8 +319,8 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 		name: "(",
 		primitive: func() {
 			// Consume the text until the end of comment ')'
-			for i.scanner.Scan() {
-				t := i.scanner.Text()
+			for i.environments[len(i.environments)-1].Scan() {
+				t := i.environments[len(i.environments)-1].Text()
 				if t == ")" {
 					break
 				}
@@ -465,10 +467,55 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 		},
 	}
 
+	// if
+	i.dictionary["if"] = ExecutableToken{
+		name: "if",
+		primitive: func() {
+			a, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+			if a == -1 {
+				// true code
+				// get the next word and process it,
+				for i.environments[len(i.environments)-1].Scan() {
+					w := i.environments[len(i.environments)-1].Text()
+					if w == "then" {
+						break
+					} else {
+						i.Interpret(w)
+					}
+				}
+			} else {
+				// skip to the 'then'
+				var foundThen bool
+				for i.environments[len(i.environments)-1].Scan() && !foundThen {
+					w := i.environments[len(i.environments)-1].Text()
+					if w == "then" {
+						foundThen = true
+					}
+				}
+				if !foundThen {
+					panic("missing 'then'")
+				}
+			}
+		},
+	}
+
 	return &i
 }
 
 func (i *Interpreter) Interpret(word string) {
+	defer func() {
+		if r := recover(); r != nil {
+			_, err := fmt.Fprintf(i.out, "%s", r)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}()
+
 	if xt, ok := i.dictionary[word]; ok {
 		xt.primitive()
 	} else {
@@ -495,14 +542,14 @@ func (i *Interpreter) Prompt() {
 }
 
 func (i *Interpreter) Word() (string, error) {
-	if i.scanner != nil && i.scanner.Scan() {
-		return i.scanner.Text(), nil
+	if i.environments != nil && i.environments[len(i.environments)-1].Scan() {
+		return i.environments[len(i.environments)-1].Text(), nil
 	} else {
 		return "", errors.New("end of input")
 	}
 }
 
 func (i *Interpreter) SetScanLine(line string) {
-	i.scanner = bufio.NewScanner(strings.NewReader(line))
-	i.scanner.Split(bufio.ScanWords)
+	i.environments[len(i.environments)-1] = bufio.NewScanner(strings.NewReader(line))
+	i.environments[len(i.environments)-1].Split(bufio.ScanWords)
 }

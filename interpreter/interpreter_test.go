@@ -223,6 +223,11 @@ func TestDefiningAndRunningWords(t *testing.T) {
 			expectedOutput: "add ?\n2 ",
 			expectedStack:  []int{},
 		},
+		"add two words": {
+			input:          "add\n: add 1 + ;\n: double 2 * ;\n1 add . 3 double .",
+			expectedOutput: "add ?\n2 6 ",
+			expectedStack:  []int{},
+		},
 	}
 
 	for name, test := range tests {
@@ -230,6 +235,54 @@ func TestDefiningAndRunningWords(t *testing.T) {
 			var o strings.Builder
 			interpreter := NewInterpreter(&o, test.input)
 
+			for {
+				w, err := interpreter.Word()
+				if err != nil {
+					break
+				}
+				interpreter.Interpret(w)
+			}
+
+			if test.expectedOutput != o.String() {
+				t.Errorf("expected '%v', got '%v'", test.expectedOutput, o.String())
+			}
+
+			ValidateStack(t, interpreter.stack, test.expectedStack)
+		})
+	}
+}
+
+func TestConditionals(t *testing.T) {
+	tests := map[string]struct {
+		input          string
+		expectedOutput string
+		expectedStack  []int
+	}{
+		"if then - false": {
+			input:          "4 5 mod 0 = if .\" Buzz\" then",
+			expectedOutput: "",
+			expectedStack:  []int{},
+		},
+		"if then - true": {
+			input:          "5 5 mod 0 = if .\" Buzz\" then",
+			expectedOutput: "Buzz",
+		},
+		"if then - false, in func": {
+			input:          ": buzz 5 mod 0 = if .\" Buzz\" then ; 4 3 buzz .",
+			expectedOutput: "4 ",
+			expectedStack:  []int{},
+		},
+		"if then - true, in func": {
+			input:          ": buzz 5 mod 0 = if .\" Buzz\" then ; 5 buzz ",
+			expectedOutput: "Buzz",
+			expectedStack:  []int{},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			var o strings.Builder
+			interpreter := NewInterpreter(&o, test.input)
 			for {
 				w, err := interpreter.Word()
 				if err != nil {
