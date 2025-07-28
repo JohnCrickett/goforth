@@ -252,7 +252,7 @@ func TestDefiningAndRunningWords(t *testing.T) {
 	}
 }
 
-func TestConditionals(t *testing.T) {
+func TestConditionalsAndLoops(t *testing.T) {
 	tests := map[string]struct {
 		input          string
 		expectedOutput string
@@ -285,6 +285,28 @@ func TestConditionals(t *testing.T) {
 		"if then else - if is false": {
 			input:          "5 3 = if .\" Equal\" else .\" Not Equal\" then",
 			expectedOutput: "Not Equal",
+			expectedStack:  []int{},
+		},
+
+		// Loops
+		"loop 5 times": {
+			input:          ": loop5 5 0 do .\" Test\" loop ;\nloop5",
+			expectedOutput: "TestTestTestTestTest",
+			expectedStack:  []int{},
+		},
+		"loop 10 times with index (i)": {
+			input:          ": loop10 10 0 do i . loop ;\nloop10",
+			expectedOutput: "0 1 2 3 4 5 6 7 8 9 ",
+			expectedStack:  []int{},
+		},
+		"use index (i) twice": {
+			input:          ": loop10 4 0 do i i + . loop ;\nloop10",
+			expectedOutput: "0 2 4 6 ",
+			expectedStack:  []int{},
+		},
+		"use index (i) twice dupping": {
+			input:          ": ci 3 1 do cr i . i . loop ;\nci",
+			expectedOutput: "\n1 1 \n2 2 ",
 			expectedStack:  []int{},
 		},
 	}

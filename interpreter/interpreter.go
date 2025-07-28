@@ -20,6 +20,7 @@ type Interpreter struct {
 	environments []*bufio.Scanner
 	out          io.Writer
 	stack        Stack[int]
+	loopStack    Stack[int]
 	dictionary   map[string]ExecutableToken
 }
 
@@ -515,6 +516,63 @@ func NewInterpreter(writer io.Writer, source string) *Interpreter {
 					panic("missing 'then'")
 				}
 			}
+		},
+	}
+
+	// do loop
+	i.dictionary["do"] = ExecutableToken{
+		name: "do",
+		primitive: func() {
+			var words []string
+
+			// grab string to 'loop'
+			for i.environments[len(i.environments)-1].Scan() {
+				w := i.environments[len(i.environments)-1].Text()
+				if w == "loop" {
+					break
+				} else {
+					words = append(words, w)
+				}
+			}
+			definition := strings.Join(words, " ")
+
+			// get the index and limit from the data stack
+			start, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+
+			end, err := i.stack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Pop()
+
+			for index := start; index < end; index++ {
+				i.loopStack.Push(index)
+				s := bufio.NewScanner(strings.NewReader(definition))
+				s.Split(bufio.ScanWords)
+				i.environments = append(i.environments, s)
+
+				for i.environments[len(i.environments)-1].Scan() {
+					t := i.environments[len(i.environments)-1].Text()
+					i.Interpret(t)
+				}
+
+				i.environments = i.environments[:len(i.environments)-1]
+				i.loopStack.Pop()
+			}
+		},
+	}
+	i.dictionary["i"] = ExecutableToken{
+		name: "i",
+		primitive: func() {
+			v, err := i.loopStack.Top()
+			if err != nil {
+				log.Fatal(err)
+			}
+			i.stack.Push(v)
 		},
 	}
 
